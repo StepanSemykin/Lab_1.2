@@ -22,8 +22,6 @@ class MySet
 				delete root;
 			}
 			root = nullptr;
-			root->left = nullptr;
-			root->right = nullptr;
 		}
 
 		TreeNode* _copy(TreeNode* other)
@@ -40,8 +38,6 @@ class MySet
 		MySet()
 		{
 			root = nullptr;
-			root->left = nullptr;
-			root->right = nullptr;
 		}
 
 		MySet(const MySet& m)
