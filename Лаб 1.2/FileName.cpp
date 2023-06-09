@@ -9,6 +9,7 @@ using namespace std;
 struct TreeNode
 {
 	int data;
+	int height = 0;
 	TreeNode* right, * left;
 };
 
@@ -19,12 +20,8 @@ class MySet
 
 		void _clear(TreeNode* root) 
 		{
-			if (root)
-			{
-				_clear(root->left);
-				_clear(root->right);
-				delete root;
-			}
+			if (root->left) _clear(root->left);
+			if (root->right) _clear(root->right); 
 			root = nullptr;
 		}
 
@@ -46,21 +43,82 @@ class MySet
 			_print(root->left, indent + 4);
 		}
 
+		void update_height(TreeNode* node) 
+		{
+			node->height = max(get_height(node->left), get_height(node->right)) + 1;
+		}
+
+		int get_balance(const TreeNode* node) 
+		{
+			return (node == nullptr) ? 0 : get_height(node->right) - get_height(node->left);
+		}
+
+		void swap(TreeNode* a, TreeNode* b) 
+		{
+			int a_data = a->data;
+			a->data = b->data;
+			b->data = a_data;
+		}
+
+		void right_rotate(TreeNode* node) 
+		{
+			swap(node, node->left);
+			TreeNode* buffer = node->right;
+			node->right = node->left;
+			node->left = node->right->left;
+			node->right->left = node->right->right;
+			node->right->right = buffer;
+			update_height(node->right);
+			update_height(node);
+		}
+
+		void left_rotate(TreeNode* node)
+		{
+			swap(node, node->right);
+			TreeNode* buffer = node->left;
+			node->left = node->right;
+			node->right = node->left->right;
+			node->left->right = node->left->left;
+			node->left->left = buffer;
+			update_height(node->left);
+			update_height(node);
+		}
+
+		void balance(TreeNode* node) 
+		{
+			int balance = get_balance(node);
+			if (balance == -2) 
+			{
+				if (get_balance(node->left) == 1) left_rotate(node->left);
+				right_rotate(node);
+			}
+			else if (balance == 2) 
+			{
+				if (get_balance(node->right) == -1) right_rotate(node->right);
+				left_rotate(node);
+			}
+		}
+
 		TreeNode* _insert(TreeNode* root, int val, bool& insert)
 		{
-			if (!root)
+			if (!root) 
 			{
-				TreeNode* tmp = new TreeNode();
-				tmp->data = val;
-				tmp->left = nullptr;
-				tmp->right = nullptr;
-				root = tmp;
-				insert = true;
+				root = new TreeNode();
+				root->data = val;
+				root->left = nullptr;
+				root->right = nullptr;
+				return root;
 			}
-
-			else if (root->data > val) root->left = _insert(root->left, val, insert);
-			else if (root->data < val) root->right = _insert(root->right, val, insert);
-			else insert = false;
+			if (val > root->data) 
+			{
+				root->right = _insert(root->right, val, insert);
+			}
+			if (val < root->data) 
+			{
+				root->left = _insert(root->left, val, insert);
+			}
+			update_height(root);
+			balance(root);
 			return root;
 		}
 		
@@ -240,6 +298,11 @@ class MySet
 			}
 			return c;
 		}
+
+		static int get_height(const TreeNode* node) 
+		{
+			return node == nullptr ? -1 : node->height;
+		}
 };
 
 size_t lcg() 
@@ -251,346 +314,9 @@ size_t lcg()
 
 int main()
 {
-	//MySet el_1000, el_10000, el_100000;
-	//vector<int> el_1000_, el_10000_, el_100000_;
-	//double seconds = 0;
-
-	//cout.setf(ios_base::fixed);
-
-	///*Множество 1000 эл*/
-	//for (size_t i = 0; i < 100; ++i)
-	//{
-	//	clock_t start = clock();
-	//	for (size_t j = 0; j < 1000; ++j)
-	//	{
-	//		
-	//		el_1000.insert(lcg());
-	//	}
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET insert 1000 el " << seconds / 100 << endl;
-
-	///*Множество 10000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 100; ++i)
-	//{
-	//	clock_t start = clock();
-	//	for (size_t j = 0; j < 10000; ++j)
-	//	{
-
-	//		el_10000.insert(lcg());
-	//	}
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET insert 10000 el " << seconds / 100 << endl;
-
-	///*Множество 100000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 100; ++i)
-	//{
-	//	clock_t start = clock();
-	//	for (size_t j = 0; j < 100000; ++j)
-	//	{
-
-	//		el_100000.insert(lcg());
-	//	}
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET insert 100000 el " << seconds / 100 << endl;
-
-	///*Вектор 1000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 100; ++i)
-	//{
-	//	clock_t start = clock();
-	//	for (size_t j = 0; j < 1000; ++j)
-	//	{
-
-	//		el_1000_.push_back(lcg());
-	//	}
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR insert 1000 el " << seconds / 100 << endl;
-
-	///*Вектор 10000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 100; ++i)
-	//{
-	//	clock_t start = clock();
-	//	for (size_t j = 0; j < 10000; ++j)
-	//	{
-
-	//		el_10000_.push_back(lcg());
-	//	}
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR insert 10000 el " << seconds / 100 << endl;
-
-	///*Вектор 100000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 100; ++i)
-	//{
-	//	clock_t start = clock();
-	//	for (size_t j = 0; j < 100000; ++j)
-	//	{
-
-	//		el_100000_.push_back(lcg());
-	//	}
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR insert 100000 el " << seconds / 100 << endl;
-
-	///*0000000000000000000000000000000000000000000000000000000000000000000000000*/
-
-	///*Множество 1000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_1000.contains(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET find in 1000 el " << seconds / 1000 << endl;
-
-	///*Множество 10000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_10000.contains(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET find in 10000 el " << seconds / 1000 << endl;
-
-	///*Множество 100000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_100000.contains(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET find in 100000 el " << seconds / 1000 << endl;
-
-	///*Вектор 1000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	int val = lcg();
-	//	clock_t start = clock();
-	//	for (size_t j = 0; j < 1000; ++j)
-	//	{
-	//		if (el_1000_[i] == val) break;
-	//	}
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR find in 1000 el " << seconds / 1000 << endl;
-
-	///*Вектор 10000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	int val = lcg();
-	//	clock_t start = clock();
-	//	for (size_t j = 0; j < 10000; ++j)
-	//	{
-	//		if (el_10000_[i] == val) break;
-	//	}
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR find in 10000 el " << seconds / 1000 << endl;
-
-	///*Вектор 100000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	int val = lcg();
-	//	clock_t start = clock();
-	//	for (size_t j = 0; j < 100000; ++j)
-	//	{
-	//		if(el_100000_[i] == val) break;
-	//	}
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR find in 100000 el " << seconds / 1000 << endl;
-
-	///*0000000000000000000000000000000000000000000000000000000000000000000000000*/
-
-	///*Множество 1000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_1000.insert(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET insert el in 1000 el " << seconds / 1000 << endl;
-
-	///*Множество 10000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_10000.insert(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET insert el in 10000 el " << seconds / 1000 << endl;
-
-	///*Множество 100000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_100000.insert(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET insert el in 100000 el " << seconds / 1000 << endl;
-
-	///*Вектор 1000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_1000_.push_back(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR insert el in 1000 el " << seconds / 1000 << endl;
-
-	///*Вектор 10000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_10000_.push_back(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR insert el in 10000 el " << seconds / 1000 << endl;
-
-	///*Вектор 100000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_100000_.push_back(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR insert el in 100000 el " << seconds / 1000 << endl;
-
-	///*0000000000000000000000000000000000000000000000000000000000000000000000000*/
-
-	///*Множество 1000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_1000.erase(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET erase el in 1000 el " << seconds / 1000 << endl;
-
-	///*Множество 10000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_10000.erase(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET erase el in 10000 el " << seconds / 1000 << endl;
-
-	///*Множество 100000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_100000.erase(lcg());
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average SET erase el in 100000 el " << seconds / 1000 << endl;
-
-	///*Вектор 1000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_1000_.pop_back();
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR erase el in 1000 el " << seconds / 1000 << endl;
-
-	///*Вектор 10000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_10000_.pop_back();
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR erase el in 10000 el " << seconds / 1000 << endl;
-
-	///*Вектор 100000 эл*/
-	//seconds = 0;
-	//for (size_t i = 0; i < 1000; ++i)
-	//{
-	//	clock_t start = clock();
-	//	el_100000_.pop_back();
-	//	clock_t end = clock();
-	//	seconds += (double)(end - start) / CLOCKS_PER_SEC;
-	//}
-	//cout.precision(6);
-	//cout << "Average VECTOR erase el in 100000 el " << seconds / 1000 << endl;
-
-	cout << endl << endl << endl << endl << endl;
-
-	MySet a, b, c;
-	a.insert(5);
+	MySet a;
 	a.insert(8);
+	a.insert(5);
 	a.insert(3);
 	a.insert(4);
 	a.insert(2);
@@ -599,28 +325,27 @@ int main()
 	a.insert(11);
 	a.insert(12);
 	a.insert(6);
-	a.insert(10);
 
 	a.print();
 	cout << endl;
 
-	a.erase(8);
-	a.insert(13);
-	a.print();
-	cout << endl << endl;
+	//a.erase(8);
+	//a.insert(13);
+	//a.print();
+	//cout << endl << endl;
 
-	b.insert(5);
-	b.insert(2);
-	b.insert(15);
-	b.insert(1);
-	b.insert(7);
-	b.insert(99);
+	//b.insert(5);
+	//b.insert(2);
+	//b.insert(15);
+	//b.insert(1);
+	//b.insert(7);
+	//b.insert(99);
 
-	b.print();
-	cout << endl;
+	//b.print();
+	//cout << endl;
 
-	c = a.difference(b);
-	c.print();
+	//c = a.difference(b);
+	//c.print();
 
 	return 0;
 }
